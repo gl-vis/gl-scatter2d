@@ -3,10 +3,14 @@
 var createShader = require('gl-shader')
 var createBuffer = require('gl-buffer')
 var createVAO = require('gl-vao')
+var bsearch = require('binary-search-bounds')
 
 var pool = require('typedarray-pool')
 
 var SHADERS = require('./lib/shader')
+var preprocessPoints = require('./lib/sort-points')
+
+var SUBDIV_COUNT = 8
 
 module.exports = createScatter2D
 
@@ -15,35 +19,40 @@ function Scatter2D(gl, vao, buffer, shader) {
   this.vao = vao
   this.buffer = buffer
   this.shader = shader
-  this.primCount = 0
+  this.scales = []
 }
 
 var proto = Scatter2D.prototype
 
 proto.update = function(options) {
   options = options || {}
-  var positions = options.positions || []
-  var numPoints = positions.length
-  var data = pool.mallocFloat32(2 * numPoints)
-  for(var i=0; i<numPoints; ++i) {
-    var p = positions[i]
-    data[2*i] = p[0]
-    data[2*i+1] = p[1]
-  }
+
+  this.pointSize = options.pointSize || 2
+  var data = options.positions
+  this.scales = preprocessPoints(data, SUBDIV_COUNT)
   this.buffer.update(data)
-  pool.free(data)
-  this.primCount = numPoints
 }
 
-proto.draw = function(camera) {
+function compareScale(a, b) {
+  return b - a.scale
+}
+
+proto.draw = function(camera, scale) {
   var shader = this.shader
   var gl = this.gl
   var vao = this.vao
+  var scales = this.scales
+
+  var pixelSize = 0.5 / (gl.drawingBufferWidth * scale)
+  var targetScale = pixelSize / 16.0
+  var scaleNum = Math.max(bsearch.le(scales, targetScale, compareScale), 0)
 
   vao.bind()
   shader.bind()
   shader.uniforms.modelViewProjection = camera
-  gl.drawArrays(gl.POINTS, 0, this.primCount)
+  shader.uniforms.pointSize = this.pointSize
+  shader.uniforms.color = [1, 0, 0, 1]
+  gl.drawArrays(gl.POINTS, 0, scales[scaleNum].count)
   vao.unbind()
 }
 

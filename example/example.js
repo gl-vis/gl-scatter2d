@@ -11,6 +11,7 @@ window.addEventListener('resize', fit(canvas), false)
 var gl = canvas.getContext('webgl')
 
 var POINT_COUNT = 1e7
+var POINT_SIZE = 2
 
 var points
 var angle = 0.0
@@ -77,19 +78,27 @@ mouseChange(function(buttons, x, y) {
   lastY = y
 })
 
-var positions = []
-for(var i=0; i<POINT_COUNT; ++i) {
-  positions.push([ gaussRandom(), gaussRandom() ])
+window.addEventListener('keypress', function(ev) {
+  if(ev.keyCode === 32) {
+    points.scaleNum = (points.scaleNum + 1) % points.scales.length
+  }
+})
+
+var positions = new Float32Array(2 * POINT_COUNT)
+for(var i=0; i<2*POINT_COUNT; ++i) {
+  positions[i] = gaussRandom()
 }
 
 var points = createPoints(gl, {
-  positions: positions
+  positions: positions,
+  size: POINT_SIZE
 })
 
 function render() {
   requestAnimationFrame(render)
   gl.viewport(0, 0, canvas.width, canvas.height)
-  points.draw(getMatrix())
+  gl.enable(gl.DEPTH_TEST)
+  points.draw(getMatrix(), Math.exp(scale))
 }
 
 render()
