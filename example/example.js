@@ -10,7 +10,7 @@ window.addEventListener('resize', fit(canvas), false)
 
 var gl = canvas.getContext('webgl')
 
-var POINT_COUNT = 5e6
+var POINT_COUNT = 1e7
 
 var points
 var angle = 0.0
@@ -25,7 +25,7 @@ function getMatrix() {
   var h = canvas.width / canvas.height
   return [ s*cx, h*s*cy, 0,
           -s*cy, h*s*cx, 0,
-          tx, ty, 1]
+          tx, h*ty, 1]
 }
 
 var lastX = 0
@@ -52,7 +52,7 @@ mouseWheel(function(dx, dy) {
   var ncy = Math.sin(angle)
 
   var bx = (2.0 * lastX / canvas.width - 1.0)
-  var by = (1.0 - 2.0 * lastY / canvas.height)
+  var by = (1.0 - 2.0 * lastY / canvas.height) / h
 
   var x = tx - bx
   var y = ty - by
@@ -69,12 +69,10 @@ mouseWheel(function(dx, dy) {
 mouseChange(function(buttons, x, y) {
   if(buttons & 1) {
     var dx = 2.0 * (x - lastX) / canvas.width
-    var dy = 2.0 * (lastY - y) / canvas.height
-
+    var dy = 2.0 * (lastY - y) / canvas.width
     tx += dx
     ty += dy
   }
-
   lastX = x
   lastY = y
 })
