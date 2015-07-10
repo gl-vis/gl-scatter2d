@@ -10,8 +10,7 @@ window.addEventListener('resize', fit(canvas), false)
 
 var gl = canvas.getContext('webgl')
 
-var POINT_COUNT = 1e7
-var POINT_SIZE = 2
+var POINT_COUNT = 1e4
 
 var points
 var angle = 0.0
@@ -90,15 +89,16 @@ for(var i=0; i<2*POINT_COUNT; ++i) {
 }
 
 var points = createPoints(gl, {
-  positions: positions,
-  size: POINT_SIZE
+  positions:  positions,
+  size:       12,
+  borderSize: 1
 })
 
 function render() {
   requestAnimationFrame(render)
   gl.viewport(0, 0, canvas.width, canvas.height)
   gl.enable(gl.DEPTH_TEST)
-  points.draw(getMatrix(), Math.exp(scale))
+  points.draw(getMatrix(), Math.exp(scale), window.devicePixelRatio)
 }
 
 render()
