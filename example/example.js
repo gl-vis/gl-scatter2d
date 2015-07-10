@@ -10,7 +10,7 @@ window.addEventListener('resize', fit(canvas), false)
 
 var gl = canvas.getContext('webgl')
 
-var POINT_COUNT = 1e4
+var POINT_COUNT = 1e7
 
 var points
 var angle = 0.0
@@ -75,12 +75,6 @@ mouseChange(function(buttons, x, y) {
   }
   lastX = x
   lastY = y
-})
-
-window.addEventListener('keypress', function(ev) {
-  if(ev.keyCode === 32) {
-    points.scaleNum = (points.scaleNum + 1) % points.scales.length
-  }
 })
 
 var positions = new Float32Array(2 * POINT_COUNT)
