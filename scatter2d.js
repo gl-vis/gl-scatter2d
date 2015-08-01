@@ -28,6 +28,7 @@ function Scatter2D(plot, offsetBuffer, pickBuffer, shader, pickShader) {
   this.borderColor    = [0,0,0,1]
   this.bounds         = [Infinity,Infinity,-Infinity,-Infinity]
   this.pickOffset     = 0
+  this.points         = null
 }
 
 var proto = Scatter2D.prototype
@@ -50,12 +51,17 @@ proto.update = function(options) {
   //Update point data
   var data          = options.positions
   var packed        = pool.mallocFloat32(data.length)
-  var packedId      = pool.mallocInt32(data.length)
-  this.scales       = preprocessPoints(data, SUBDIV_COUNT, packed, packedId, this.bounds)
+  var packedId      = pool.mallocInt32(data.length>>>1)
+  var points        = pool.mallocFloat32(data.length)
+  points.set(data)
+  this.points       = data
+  this.scales       = preprocessPoints(points, SUBDIV_COUNT, packed, packedId, this.bounds)
   this.offsetBuffer.update(packed)
   this.pickBuffer.update(packedId)
+  pool.free(points)
+  pool.free(packedId)
   pool.free(packed)
-
+  
   this.pointCount = data.length >>> 1
   this.pickOffset = 0
 }
@@ -191,9 +197,12 @@ proto.pick = function(x, y, value) {
   if(value < pickOffset || value >= pickOffset + pointCount) {
     return null
   }
+  var pointId = value - pickOffset
+  var points = this.points
   return {
     object:  this,
-    pointId: value - pickOffset
+    pointId: pointId,
+    dataCoord: [ points[2*pointId], points[2*pointId+1] ]
   }
 }
 
