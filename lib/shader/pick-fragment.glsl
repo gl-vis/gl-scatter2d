@@ -7,5 +7,5 @@ void main() {
   if(radius > 1.0) {
     discard;
   }
-  gl_FragColor = fragId / 255.0;
+  gl_FragColor = fract(fragId / 255.0);
 }

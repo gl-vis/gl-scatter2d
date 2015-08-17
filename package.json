@@ -7,20 +7,23 @@
     "example": "example"
   },
   "browserify": {
-    "transform": [ "glslify" ]
+    "transform": [
+      "glslify"
+    ]
   },
   "dependencies": {
-    "canvas-fit": "^1.4.0",
     "binary-search-bounds": "^2.0.3",
+    "canvas-fit": "^1.4.0",
     "gauss-random": "^1.0.1",
     "gl-buffer": "^2.1.2",
+    "gl-now": "^1.4.0",
     "gl-shader": "^4.0.4",
+    "gl-vao": "^1.2.1",
     "glslify": "^2.1.2",
     "mouse-change": "^1.2.1",
     "mouse-wheel": "^1.0.2",
-    "typedarray-pool": "^1.1.0",
-    "gl-now": "^1.4.0",
-    "gl-vao": "^1.2.1"
+    "snap-points-2d": "^1.0.0",
+    "typedarray-pool": "^1.1.0"
   },
   "devDependencies": {},
   "scripts": {

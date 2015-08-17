@@ -4,13 +4,11 @@ var createShader = require('gl-shader')
 var createBuffer = require('gl-buffer')
 var bsearch = require('binary-search-bounds')
 var getMarker = require('text-cache')
+var snapPoints = require('snap-points-2d')
 
 var pool = require('typedarray-pool')
 
 var SHADERS = require('./lib/shader')
-var preprocessPoints = require('./lib/sort-points')
-
-var SUBDIV_COUNT = 2
 
 module.exports = createScatter2D
 
@@ -55,19 +53,19 @@ proto.update = function(options) {
   var points        = pool.mallocFloat32(data.length)
   points.set(data)
   this.points       = data
-  this.scales       = preprocessPoints(points, SUBDIV_COUNT, packed, packedId, this.bounds)
+  this.scales       = snapPoints(points, packed, packedId, this.bounds)
   this.offsetBuffer.update(packed)
   this.pickBuffer.update(packedId)
   pool.free(points)
   pool.free(packedId)
   pool.free(packed)
-  
+
   this.pointCount = data.length >>> 1
   this.pickOffset = 0
 }
 
 function compareScale(a, b) {
-  return b - a.scale
+  return b - a.pixelSize
 }
 
 proto.drawPick = (function() {
@@ -129,11 +127,10 @@ return function(pickOffset) {
   pickBuffer.bind()
   shader.attributes.pickId.pointer(gl.UNSIGNED_BYTE)
 
-  var offset     = scales[scaleNum].count
-  var pointCount = this.pointCount
-  gl.drawArrays(gl.POINTS, offset, pointCount - offset)
+  var lod        = scales[scaleNum]
+  gl.drawArrays(gl.POINTS, lod.offset, lod.count)
 
-  return pickOffset + pointCount
+  return pickOffset + this.pointCount
 }
 })()
 
@@ -185,9 +182,8 @@ proto.draw = (function() {
 
     offsetBuffer.bind()
     shader.attributes.position.pointer()
-    var offset     = scales[scaleNum].count
-    var pointCount = this.pointCount
-    gl.drawArrays(gl.POINTS, offset, pointCount - offset)
+    var lod     = scales[scaleNum]
+    gl.drawArrays(gl.POINTS, lod.offset, lod.count)
   }
 })()
 
