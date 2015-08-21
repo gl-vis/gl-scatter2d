@@ -27,9 +27,21 @@ function Scatter2D(plot, offsetBuffer, pickBuffer, shader, pickShader) {
   this.bounds         = [Infinity,Infinity,-Infinity,-Infinity]
   this.pickOffset     = 0
   this.points         = null
+  this.xCoords        = null
 }
 
 var proto = Scatter2D.prototype
+
+proto.dispose = function() {
+  this.shader.dispose()
+  this.pickShader.dispose()
+  this.offsetBuffer.dispose()
+  this.pickBuffer.dispose()
+  if(this.xCoords) {
+    pool.free(this.xCoords)
+  }
+  this.plot.removeObject(this)
+}
 
 proto.update = function(options) {
   options = options || {}
@@ -47,25 +59,28 @@ proto.update = function(options) {
   this.borderColor  = dflt('borderColor', [0,0,0,1]).slice()
 
   //Update point data
+  if(this.xCoords) {
+    pool.free(this.xCoords)
+  }
   var data          = options.positions
   var packed        = pool.mallocFloat32(data.length)
   var packedId      = pool.mallocInt32(data.length>>>1)
-  var points        = pool.mallocFloat32(data.length)
-  points.set(data)
+  packed.set(data)
   this.points       = data
-  this.scales       = snapPoints(points, packed, packedId, this.bounds)
+  this.scales       = snapPoints(packed, packedId, this.bounds)
   this.offsetBuffer.update(packed)
   this.pickBuffer.update(packedId)
-  pool.free(points)
+  var xCoords      = pool.mallocFloat32(data.length>>>1)
+  for(var i=0,j=0; i<data.length; i+=2,++j) {
+    xCoords[j] = packed[i]
+  }
   pool.free(packedId)
   pool.free(packed)
 
+  this.xCoords = xCoords
+
   this.pointCount = data.length >>> 1
   this.pickOffset = 0
-}
-
-function compareScale(a, b) {
-  return b - a.pixelSize
 }
 
 proto.drawPick = (function() {
@@ -96,7 +111,7 @@ return function(pickOffset) {
 
   var pixelSize   = Math.max(dataX / screenX, dataY / screenY)
   var targetScale = pixelSize
-  var scaleNum    = Math.min(Math.max(bsearch.le(scales, targetScale, compareScale), 0), scales.length-1)
+
 
   MATRIX[0] = 2.0 * boundX / dataX
   MATRIX[4] = 2.0 * boundY / dataY
@@ -127,8 +142,26 @@ return function(pickOffset) {
   pickBuffer.bind()
   shader.attributes.pickId.pointer(gl.UNSIGNED_BYTE)
 
-  var lod        = scales[scaleNum]
-  gl.drawArrays(gl.POINTS, lod.offset, lod.count)
+  var xCoords = this.xCoords
+  var xStart = (dataBox[0] - bounds[0] - pixelSize * size * pixelRatio) / boundX
+  var xEnd   = (dataBox[2] - bounds[0] + pixelSize * size * pixelRatio) / boundX
+
+  for(var scaleNum = scales.length-1; scaleNum >= 0; --scaleNum) {
+    var lod     = scales[scaleNum]
+    if(lod.pixelSize < pixelSize) {
+      continue
+    }
+
+    var intervalStart = lod.offset
+    var intervalEnd   = lod.count + intervalStart
+
+    var startOffset = bsearch.ge(xCoords, xStart, intervalStart, intervalEnd)
+    var endOffset   = bsearch.lt(xCoords, xEnd, startOffset, intervalEnd)
+
+    if(startOffset < endOffset) {
+      gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
+    }
+  }
 
   return pickOffset + this.pointCount
 }
@@ -161,7 +194,6 @@ proto.draw = (function() {
 
     var pixelSize   = Math.max(dataX / screenX, dataY / screenY)
     var targetScale = pixelSize
-    var scaleNum    = Math.min(Math.max(bsearch.le(scales, targetScale, compareScale), 0), scales.length-1)
 
     MATRIX[0] = 2.0 * boundX / dataX
     MATRIX[4] = 2.0 * boundY / dataY
@@ -182,8 +214,27 @@ proto.draw = (function() {
 
     offsetBuffer.bind()
     shader.attributes.position.pointer()
-    var lod     = scales[scaleNum]
-    gl.drawArrays(gl.POINTS, lod.offset, lod.count)
+
+    var xCoords = this.xCoords
+    var xStart = (dataBox[0] - bounds[0] - pixelSize * size * pixelRatio) / boundX
+    var xEnd   = (dataBox[2] - bounds[0] + pixelSize * size * pixelRatio) / boundX
+
+    for(var scaleNum = scales.length-1; scaleNum >= 0; --scaleNum) {
+      var lod     = scales[scaleNum]
+      if(lod.pixelSize < pixelSize) {
+        continue
+      }
+
+      var intervalStart = lod.offset
+      var intervalEnd   = lod.count + intervalStart
+
+      var startOffset = bsearch.ge(xCoords, xStart, intervalStart, intervalEnd)
+      var endOffset   = bsearch.lt(xCoords, xEnd, startOffset, intervalEnd)
+
+      if(startOffset < endOffset) {
+        gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
+      }
+    }
   }
 })()
 
@@ -211,5 +262,9 @@ function createScatter2D(plot, options) {
 
   var result = new Scatter2D(plot, buffer, pickBuffer, shader, pickShader)
   result.update(options)
+
+  //Register with plot
+  plot.addObject(result)
+
   return result
 }
