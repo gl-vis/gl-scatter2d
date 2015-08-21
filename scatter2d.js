@@ -109,7 +109,7 @@ return function(pickOffset) {
   var screenX = (viewBox[2] - viewBox[0]) * pixelRatio / plot.pixelRatio
   var screenY = (viewBox[3] - viewBox[1]) * pixelRatio / plot.pixelRatio
 
-  var pixelSize   = Math.max(dataX / screenX, dataY / screenY)
+  var pixelSize   = Math.min(dataX / screenX, dataY / screenY)
   var targetScale = pixelSize
 
 
@@ -192,7 +192,7 @@ proto.draw = (function() {
     var screenX = viewBox[2] - viewBox[0]
     var screenY = viewBox[3] - viewBox[1]
 
-    var pixelSize   = Math.max(dataX / screenX, dataY / screenY)
+    var pixelSize   = Math.min(dataX / screenX, dataY / screenY)
     var targetScale = pixelSize
 
     MATRIX[0] = 2.0 * boundX / dataX
