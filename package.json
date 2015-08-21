@@ -13,19 +13,18 @@
   },
   "dependencies": {
     "binary-search-bounds": "^2.0.3",
-    "canvas-fit": "^1.4.0",
-    "gauss-random": "^1.0.1",
     "gl-buffer": "^2.1.2",
-    "gl-now": "^1.4.0",
     "gl-shader": "^4.0.4",
-    "gl-vao": "^1.2.1",
     "glslify": "^2.1.2",
-    "mouse-change": "^1.2.1",
-    "mouse-wheel": "^1.0.2",
-    "snap-points-2d": "^1.0.0",
+    "snap-points-2d": "^2.0.0",
     "typedarray-pool": "^1.1.0"
   },
-  "devDependencies": {},
+  "devDependencies": {
+    "mouse-change": "^1.2.1",
+    "mouse-wheel": "^1.0.2",
+    "gauss-random": "^1.0.1",
+    "canvas-fit": "^1.4.0"
+  },
   "scripts": {
     "test": "tape test/*.js"
   },
