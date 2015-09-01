@@ -148,7 +148,7 @@ return function(pickOffset) {
 
   for(var scaleNum = scales.length-1; scaleNum >= 0; --scaleNum) {
     var lod     = scales[scaleNum]
-    if(lod.pixelSize < pixelSize) {
+    if(lod.pixelSize < pixelSize && scaleNum !== scales.length-1) {
       continue
     }
 
@@ -219,9 +219,10 @@ proto.draw = (function() {
     var xStart = (dataBox[0] - bounds[0] - pixelSize * size * pixelRatio) / boundX
     var xEnd   = (dataBox[2] - bounds[0] + pixelSize * size * pixelRatio) / boundX
 
+
     for(var scaleNum = scales.length-1; scaleNum >= 0; --scaleNum) {
       var lod     = scales[scaleNum]
-      if(lod.pixelSize < pixelSize) {
+      if(lod.pixelSize < pixelSize && scaleNum !== scales.length-1) {
         continue
       }
 
