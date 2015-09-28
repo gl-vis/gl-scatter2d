@@ -159,12 +159,10 @@ return function(pickOffset) {
     var intervalStart = lod.offset
     var intervalEnd   = lod.count + intervalStart
 
-    var startOffset = bsearch.ge(xCoords, xStart, intervalStart, intervalEnd)
-    var endOffset   = bsearch.lt(xCoords, xEnd, startOffset, intervalEnd)
+    var startOffset = bsearch.ge(xCoords, xStart, intervalStart, intervalEnd-1)
+    var endOffset   = bsearch.lt(xCoords, xEnd, startOffset, intervalEnd-1)+1
 
-    if(startOffset < endOffset) {
-      gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
-    }
+    gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
   }
 
   return pickOffset + this.pointCount
@@ -238,13 +236,11 @@ proto.draw = (function() {
       var intervalStart = lod.offset
       var intervalEnd   = lod.count + intervalStart
 
-      var startOffset = bsearch.ge(xCoords, xStart, intervalStart, intervalEnd)
-      var endOffset   = bsearch.lt(xCoords, xEnd, startOffset, intervalEnd)
+      var startOffset = bsearch.ge(xCoords, xStart, intervalStart, intervalEnd-1)
+      var endOffset   = bsearch.lt(xCoords, xEnd, startOffset, intervalEnd-1)+1
 
-      if(startOffset < endOffset) {
-        gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
-      }
-
+      gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
+      
       if(firstLevel) {
         firstLevel = false
         shader.uniforms.useWeight = 0
