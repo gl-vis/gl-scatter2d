@@ -3,7 +3,6 @@
 var createShader = require('gl-shader')
 var createBuffer = require('gl-buffer')
 var bsearch = require('binary-search-bounds')
-var getMarker = require('text-cache')
 var snapPoints = require('snap-points-2d')
 
 var pool = require('typedarray-pool')
@@ -240,7 +239,7 @@ proto.draw = (function() {
       var endOffset   = bsearch.lt(xCoords, xEnd, startOffset, intervalEnd-1)+1
 
       gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
-      
+
       if(firstLevel) {
         firstLevel = false
         shader.uniforms.useWeight = 0
