@@ -105,6 +105,10 @@ return function(pickOffset) {
   var viewBox       = plot.viewBox
   var dataBox       = plot.dataBox
 
+  if(this.pointCount === 0) {
+    return pickOffset
+  }
+
   var boundX  = bounds[2] - bounds[0]
   var boundY  = bounds[3] - bounds[1]
   var dataX   = dataBox[2] - dataBox[0]
@@ -185,6 +189,10 @@ proto.draw = (function() {
     var pixelRatio    = plot.pixelRatio
     var viewBox       = plot.viewBox
     var dataBox       = plot.dataBox
+
+    if(this.pointCount === 0) {
+      return
+    }
 
     var boundX  = bounds[2] - bounds[0]
     var boundY  = bounds[3] - bounds[1]
