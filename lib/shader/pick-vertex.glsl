@@ -15,8 +15,14 @@ void main() {
   gl_PointSize = pointSize;
 
   vec4 id = pickId + pickOffset;
-  id.z += floor(id.w / 256.0);
-  id.y += floor(id.z / 256.0);
-  id.x += floor(id.y / 256.0);
+  id.y += floor(id.x / 256.0);
+  id.x -= floor(id.x / 256.0) * 256.0;
+
+  id.z += floor(id.y / 256.0);
+  id.y -= floor(id.y / 256.0) * 256.0;
+
+  id.w += floor(id.z / 256.0);
+  id.z -= floor(id.z / 256.0) * 256.0;
+
   fragId = id;
 }

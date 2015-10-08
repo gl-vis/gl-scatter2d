@@ -128,8 +128,8 @@ return function(pickOffset) {
   this.pickOffset = pickOffset
   PICK_VEC4[0] = ( pickOffset      & 0xff)
   PICK_VEC4[1] = ((pickOffset>>8)  & 0xff)
-  PICK_VEC4[1] = ((pickOffset>>16) & 0xff)
-  PICK_VEC4[1] = ((pickOffset>>24) & 0xff)
+  PICK_VEC4[2] = ((pickOffset>>16) & 0xff)
+  PICK_VEC4[3] = ((pickOffset>>24) & 0xff)
 
   shader.bind()
   shader.uniforms.matrix      = MATRIX
