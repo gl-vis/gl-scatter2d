@@ -1,6 +1,6 @@
 {
   "name": "gl-scatter2d",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "2D WebGL scatter plots",
   "main": "scatter2d.js",
   "directories": {
