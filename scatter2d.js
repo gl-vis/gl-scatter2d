@@ -165,7 +165,9 @@ return function(pickOffset) {
     var startOffset = bsearch.ge(xCoords, xStart, intervalStart, intervalEnd-1)
     var endOffset   = bsearch.lt(xCoords, xEnd, startOffset, intervalEnd-1)+1
 
-    gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
+    if(endOffset > startOffset) {
+      gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
+    }
   }
 
   return pickOffset + this.pointCount
@@ -246,7 +248,9 @@ proto.draw = (function() {
       var startOffset = bsearch.ge(xCoords, xStart, intervalStart, intervalEnd-1)
       var endOffset   = bsearch.lt(xCoords, xEnd, startOffset, intervalEnd-1)+1
 
-      gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
+      if(endOffset > startOffset) {
+        gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
+      }
 
       if(firstLevel) {
         firstLevel = false
