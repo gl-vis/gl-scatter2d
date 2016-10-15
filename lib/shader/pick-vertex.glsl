@@ -1,17 +1,22 @@
-precision mediump float;
+precision highp float;
 
-attribute vec2 position;
+attribute vec2 positionHi, positionLo;
 attribute vec4 pickId;
 
-uniform mat3 matrix;
+uniform vec2 scaleHi, scaleLo, translateHi, translateLo;
 uniform float pointSize;
 uniform vec4 pickOffset;
 
 varying vec4 fragId;
 
 void main() {
-  vec3 hgPosition = matrix * vec3(position, 1);
-  gl_Position  = vec4(hgPosition.xy, 0, hgPosition.z);
+
+ vec2 hgPosition = scaleHi * positionHi + translateHi
+                 + scaleLo * positionHi + translateLo
+                 + scaleHi * positionLo
+                 + scaleLo * positionLo;
+
+  gl_Position  = vec4(hgPosition, 0.0, 1.0);
   gl_PointSize = pointSize;
 
   vec4 id = pickId + pickOffset;
