@@ -8,14 +8,10 @@ uniform float pointSize, useWeight;
 
 varying float fragWeight;
 
+#pragma glslify: pfx = require("./precise.glsl")
+
 void main() {
-
- vec2 hgPosition = scaleHi * positionHi + translateHi
-                 + scaleLo * positionHi + translateLo
-                 + scaleHi * positionLo
-                 + scaleLo * positionLo;
-
-  gl_Position  = vec4(hgPosition, 0.0, 1.0);
+  gl_Position = pfx(scaleHi, scaleLo, translateHi, translateLo, positionHi, positionLo);
   gl_PointSize = pointSize;
   fragWeight = mix(1.0, weight, useWeight);
 }

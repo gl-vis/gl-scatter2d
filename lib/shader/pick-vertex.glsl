@@ -1,4 +1,5 @@
 precision highp float;
+#pragma glslify: pfx = require("./precise.glsl")
 
 attribute vec2 positionHi, positionLo;
 attribute vec4 pickId;
@@ -11,14 +12,6 @@ varying vec4 fragId;
 
 void main() {
 
- vec2 hgPosition = scaleHi * positionHi + translateHi
-                 + scaleLo * positionHi + translateLo
-                 + scaleHi * positionLo
-                 + scaleLo * positionLo;
-
-  gl_Position  = vec4(hgPosition, 0.0, 1.0);
-  gl_PointSize = pointSize;
-
   vec4 id = pickId + pickOffset;
   id.y += floor(id.x / 256.0);
   id.x -= floor(id.x / 256.0) * 256.0;
@@ -29,5 +22,7 @@ void main() {
   id.w += floor(id.z / 256.0);
   id.z -= floor(id.z / 256.0) * 256.0;
 
+  gl_Position = pfx(scaleHi, scaleLo, translateHi, translateLo, positionHi, positionLo);
+  gl_PointSize = pointSize;
   fragId = id;
 }
