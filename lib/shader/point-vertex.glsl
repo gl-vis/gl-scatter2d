@@ -1,16 +1,17 @@
-precision mediump float;
+precision highp float;
 
-attribute vec2 position;
+attribute vec2 positionHi, positionLo;
 attribute float weight;
 
-uniform mat3 matrix;
+uniform vec2 scaleHi, scaleLo, translateHi, translateLo;
 uniform float pointSize, useWeight;
 
 varying float fragWeight;
 
+#pragma glslify: pfx = require("./precise.glsl")
+
 void main() {
-  vec3 hgPosition = matrix * vec3(position, 1);
-  gl_Position  = vec4(hgPosition.xy, 0, hgPosition.z);
+  gl_Position = pfx(scaleHi, scaleLo, translateHi, translateLo, positionHi, positionLo);
   gl_PointSize = pointSize;
   fragWeight = mix(1.0, weight, useWeight);
 }
