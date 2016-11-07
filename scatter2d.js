@@ -132,8 +132,8 @@ proto.draw = function(pickOffset) {
   scaleLo[0] = scaleX - scaleHi[0]
   scaleLo[1] = scaleY - scaleHi[1]
 
-  var translateX = 2 * (bounds[0] - dataBox[0]) / dataX - 1
-  var translateY = 2 * (bounds[1] - dataBox[1]) / dataY - 1
+  var translateX = (bounds[0] - dataBox[0] - 0.5 * dataX) / boundX
+  var translateY = (bounds[1] - dataBox[1] - 0.5 * dataY) / boundY
 
   translateHi[0] = translateX
   translateHi[1] = translateY
