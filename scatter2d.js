@@ -202,6 +202,8 @@ proto.draw = function(pickOffset) {
       shader.uniforms.useWeight = 0
     }
   }
+
+  return pickOffset + this.pointCount
 }
 
 proto.drawPick = proto.draw
