@@ -29,6 +29,7 @@ Creates a new 2D scatter plot.
 * `color` is the color of a marker as a length 4 RGBA array (default `[1,0,0,1]`)
 * `borderSize` is the width of the border around each point in pixels (default `1`)
 * `borderColor` is the color of the border of each point (default `[0,0,0,1]`)
+* `snapPoints` defines whether points should be grouped hierarchically to optimize rendering of huge number of points
 
 **Returns** A new scatter plot object, which is also registered to `plot`
 
