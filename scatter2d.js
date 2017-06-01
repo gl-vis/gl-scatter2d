@@ -68,12 +68,12 @@ proto.update = function(options) {
   if (options.positions != null) {
     this.points             = options.positions
     var pointCount          = this.points.length >>> 1
-    var packedId            = pool.mallocInt32(pointCount)
-    var packedW             = pool.mallocFloat32(pointCount)
-    var packed              = pool.mallocFloat64(2 * pointCount)
+
+    var packedId = pool.mallocInt32(pointCount)
+    var packedW = pool.mallocFloat32(pointCount)
+    var packed = pool.mallocFloat64(2 * pointCount)
     packed.set(this.points)
 
-      console.time('1')
     if (this.snapPoints) {
       this.scales = snapPoints(packed, packedId, packedW, this.bounds)
     }
@@ -84,13 +84,12 @@ proto.update = function(options) {
       // rescale packed to unit box
       normalize(packed, 2, this.bounds)
 
-      //generate fake ids
+      // generate fake ids
       for (var i = 0; i < pointCount; i++) {
         packedId[i] = i
         packedW[i] = 1
       }
     }
-      console.timeEnd('1')
 
     var xCoords             = pool.mallocFloat64(pointCount)
     var packedHi            = pool.mallocFloat32(2 * pointCount)
@@ -106,11 +105,11 @@ proto.update = function(options) {
     this.pickBuffer.update(packedId)
     this.weightBuffer.update(packedW)
 
-    pool.free(packedId)
-    pool.free(packed)
     pool.free(packedHi)
     pool.free(packedLo)
     pool.free(packedW)
+    pool.free(packed)
+    pool.free(packedId)
 
     this.xCoords = xCoords
     this.pointCount = pointCount
@@ -146,7 +145,7 @@ proto.draw = function(pickOffset) {
   var screenX = (viewBox[2] - viewBox[0]) * pixelRatio / plot.pixelRatio
   var screenY = (viewBox[3] - viewBox[1]) * pixelRatio / plot.pixelRatio
 
-  var pixelSize   = Math.min(dataX / screenX, dataY / screenY)
+  var pixelSize = this.pixelSize = Math.min(dataX / screenX, dataY / screenY)
 
   var scaleX = 2 * boundX / dataX
   var scaleY = 2 * boundY / dataY
@@ -201,9 +200,6 @@ proto.draw = function(pickOffset) {
 
   }
 
-  var xCoords = this.xCoords
-  var xStart = (dataBox[0] - bounds[0] - pixelSize * size * pixelRatio) / boundX
-  var xEnd   = (dataBox[2] - bounds[0] + pixelSize * size * pixelRatio) / boundX
 
   var firstLevel = true
 
@@ -213,11 +209,8 @@ proto.draw = function(pickOffset) {
       if(lod.pixelSize < pixelSize && scaleNum > 1)
         continue
 
-      var intervalStart = lod.offset
-      var intervalEnd   = lod.count + intervalStart
-
-      var startOffset = search.ge(xCoords, xStart, intervalStart, intervalEnd - 1)
-      var endOffset   = search.lt(xCoords, xEnd, startOffset, intervalEnd - 1) + 1
+      var range = this.getVisibleRange(lod)
+      var startOffset = range[0], endOffset = range[1]
 
       if(endOffset > startOffset)
         gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
@@ -233,6 +226,35 @@ proto.draw = function(pickOffset) {
   }
 
   return pickOffset + this.pointCount
+}
+
+proto.getVisibleRange = function (lod) {
+  var dataBox = this.plot.dataBox,
+      bounds = this.bounds,
+      pixelSize = this.pixelSize,
+      size = this.size,
+      pixelRatio = this.plot.pixelRatio,
+      boundX  = bounds[2] - bounds[0],
+      boundY  = bounds[3] - bounds[1]
+
+  if (!lod) {
+    for(var scaleNum = this.scales.length - 1, lod; scaleNum >= 0; scaleNum--) {
+      lod = this.scales[scaleNum];
+      if(!(lod.pixelSize < pixelSize && scaleNum > 1)) break;
+    }
+  }
+
+  var xCoords = this.xCoords
+  var xStart = (dataBox[0] - bounds[0] - pixelSize * size * pixelRatio) / boundX
+  var xEnd   = (dataBox[2] - bounds[0] + pixelSize * size * pixelRatio) / boundX
+
+  var intervalStart = lod.offset
+  var intervalEnd   = lod.count + intervalStart
+
+  var startOffset = search.ge(xCoords, xStart, intervalStart, intervalEnd - 1)
+  var endOffset   = search.lt(xCoords, xEnd, startOffset, intervalEnd - 1) + 1
+
+  return [startOffset, endOffset]
 }
 
 proto.drawPick = proto.draw
