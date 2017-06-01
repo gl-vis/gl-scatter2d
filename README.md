@@ -24,7 +24,7 @@ Creates a new 2D scatter plot.
 
 `options` has the following properties:
 
-* `data` is a packed 2*n length array of the unrolled xy coordinates of the points (required)
+* `positions` is a packed 2*n length array of the unrolled xy coordinates of the points (required)
 * `size` is a number giving the diameter of a marker in pixels (default `12`)
 * `color` is the color of a marker as a length 4 RGBA array (default `[1,0,0,1]`)
 * `borderSize` is the width of the border around each point in pixels (default `1`)

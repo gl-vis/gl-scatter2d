@@ -12,6 +12,7 @@
     ]
   },
   "dependencies": {
+    "array-normalize": "^1.1.0",
     "binary-search-bounds": "^2.0.3",
     "gl-buffer": "^2.1.2",
     "gl-shader": "^4.0.4",
@@ -20,10 +21,16 @@
     "typedarray-pool": "^1.1.0"
   },
   "devDependencies": {
-    "mouse-change": "^1.2.1",
-    "mouse-wheel": "^1.0.2",
+    "array-bounds": "^1.0.0",
+    "canvas-fit": "^1.5.0",
+    "enable-mobile": "^1.0.7",
+    "fps-indicator": "^1.0.2",
     "gauss-random": "^1.0.1",
-    "canvas-fit": "^1.4.0"
+    "gl-plot2d": "^1.2.0",
+    "gl-select-box": "^1.0.1",
+    "gl-spikes2d": "^1.0.1",
+    "mouse-change": "^1.4.0",
+    "mouse-wheel": "^1.2.0"
   },
   "scripts": {
     "test": "tape test/*.js"
@@ -39,7 +46,10 @@
     "2d"
   ],
   "author": "Mikola Lysenko",
-  "contributors": ["Étienne Tétreault-Pinard", "Robert Monfera"],
+  "contributors": [
+    "Étienne Tétreault-Pinard",
+    "Robert Monfera"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/gl-vis/gl-scatter2d/issues"

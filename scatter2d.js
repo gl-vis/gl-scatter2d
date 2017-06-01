@@ -6,6 +6,8 @@ var search = require('binary-search-bounds')
 var snapPoints = require('snap-points-2d')
 var pool = require('typedarray-pool')
 var SHADERS = require('./lib/shader')
+var normalize = require('array-normalize')
+var getBounds = require('array-bounds')
 
 module.exports = createScatter2D
 
@@ -27,6 +29,7 @@ function Scatter2D(plot, positionBufferHi, positionBufferLo, pickBuffer, weightB
   this.pickOffset       = 0
   this.points           = null
   this.xCoords          = null
+  this.snapPoints       = true
 }
 
 var proto = Scatter2D.prototype
@@ -57,40 +60,62 @@ proto.update = function(options) {
   this.color        = dflt('color', [1, 0, 0, 1]).slice()
   this.borderSize   = dflt('borderSize', 1)
   this.borderColor  = dflt('borderColor', [0, 0, 0, 1]).slice()
+  this.snapPoints   = dflt('snapPoints', true)
 
   if(this.xCoords) pool.free(this.xCoords)
 
-  this.points             = options.positions
-  var pointCount          = this.points.length >>> 1
-  var packedId            = pool.mallocInt32(pointCount)
-  var packedW             = pool.mallocFloat32(2 * pointCount)
-  var packed              = pool.mallocFloat64(2 * pointCount)
-  packed.set(this.points)
-  this.scales             = snapPoints(packed, packedId, packedW, this.bounds)
+  //do not recalc points if there is no positions
+  if (options.positions != null) {
+    this.points             = options.positions
+    var pointCount          = this.points.length >>> 1
+    var packedId            = pool.mallocInt32(pointCount)
+    var packedW             = pool.mallocFloat32(pointCount)
+    var packed              = pool.mallocFloat64(2 * pointCount)
+    packed.set(this.points)
 
-  var xCoords             = pool.mallocFloat64(pointCount)
-  var packedHi            = pool.mallocFloat32(2 * pointCount)
-  var packedLo            = pool.mallocFloat32(2 * pointCount)
-  packedHi.set(packed)
-  for(var i = 0, j = 0; i < pointCount; i++, j += 2) {
-    packedLo[j] = packed[j] - packedHi[j]
-    packedLo[j + 1] = packed[j + 1] - packedHi[j + 1]
-    xCoords[i] = packed[j]
+      console.time('1')
+    if (this.snapPoints) {
+      this.scales = snapPoints(packed, packedId, packedW, this.bounds)
+    }
+    else {
+      //get bounds
+      this.bounds = getBounds(packed, 2)
+
+      // rescale packed to unit box
+      normalize(packed, 2, this.bounds)
+
+      //generate fake ids
+      for (var i = 0; i < pointCount; i++) {
+        packedId[i] = i
+        packedW[i] = 1
+      }
+    }
+      console.timeEnd('1')
+
+    var xCoords             = pool.mallocFloat64(pointCount)
+    var packedHi            = pool.mallocFloat32(2 * pointCount)
+    var packedLo            = pool.mallocFloat32(2 * pointCount)
+    packedHi.set(packed)
+    for(var i = 0, j = 0; i < pointCount; i++, j += 2) {
+      packedLo[j] = packed[j] - packedHi[j]
+      packedLo[j + 1] = packed[j + 1] - packedHi[j + 1]
+      xCoords[i] = packed[j]
+    }
+    this.positionBufferHi.update(packedHi)
+    this.positionBufferLo.update(packedLo)
+    this.pickBuffer.update(packedId)
+    this.weightBuffer.update(packedW)
+
+    pool.free(packedId)
+    pool.free(packed)
+    pool.free(packedHi)
+    pool.free(packedLo)
+    pool.free(packedW)
+
+    this.xCoords = xCoords
+    this.pointCount = pointCount
+    this.pickOffset = 0
   }
-  this.positionBufferHi.update(packedHi)
-  this.positionBufferLo.update(packedLo)
-  this.pickBuffer.update(packedId)
-  this.weightBuffer.update(packedW)
-
-  pool.free(packedId)
-  pool.free(packed)
-  pool.free(packedHi)
-  pool.free(packedLo)
-  pool.free(packedW)
-
-  this.xCoords = xCoords
-  this.pointCount = pointCount
-  this.pickOffset = 0
 }
 
 proto.draw = function(pickOffset) {
@@ -158,7 +183,6 @@ proto.draw = function(pickOffset) {
   shader.attributes.positionLo.pointer()
 
   if(pick) {
-
     this.pickOffset = pickOffset
     PICK_VEC4[0] = ( pickOffset        & 0xff)
     PICK_VEC4[1] = ((pickOffset >> 8)  & 0xff)
@@ -183,24 +207,29 @@ proto.draw = function(pickOffset) {
 
   var firstLevel = true
 
-  for(var scaleNum = scales.length - 1; scaleNum >= 0; scaleNum--) {
-    var lod = scales[scaleNum]
-    if(lod.pixelSize < pixelSize && scaleNum > 1)
-      continue
+  if (this.snapPoints) {
+    for(var scaleNum = scales.length - 1; scaleNum >= 0; scaleNum--) {
+      var lod = scales[scaleNum]
+      if(lod.pixelSize < pixelSize && scaleNum > 1)
+        continue
 
-    var intervalStart = lod.offset
-    var intervalEnd   = lod.count + intervalStart
+      var intervalStart = lod.offset
+      var intervalEnd   = lod.count + intervalStart
 
-    var startOffset = search.ge(xCoords, xStart, intervalStart, intervalEnd - 1)
-    var endOffset   = search.lt(xCoords, xEnd, startOffset, intervalEnd - 1) + 1
+      var startOffset = search.ge(xCoords, xStart, intervalStart, intervalEnd - 1)
+      var endOffset   = search.lt(xCoords, xEnd, startOffset, intervalEnd - 1) + 1
 
-    if(endOffset > startOffset)
-      gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
+      if(endOffset > startOffset)
+        gl.drawArrays(gl.POINTS, startOffset, endOffset - startOffset)
 
-    if(!pick && firstLevel) {
-      firstLevel = false
-      shader.uniforms.useWeight = 0
+      if(!pick && firstLevel) {
+        firstLevel = false
+        shader.uniforms.useWeight = 0
+      }
     }
+  }
+  else {
+    gl.drawArrays(gl.POINTS, 0, this.pointCount)
   }
 
   return pickOffset + this.pointCount
