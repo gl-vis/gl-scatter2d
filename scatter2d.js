@@ -118,7 +118,6 @@ proto.update = function(options) {
 }
 
 proto.draw = function(pickOffset) {
-
   var pick = pickOffset !== void(0)
 
   var plot             = this.plot
