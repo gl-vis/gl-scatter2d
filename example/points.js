@@ -21,6 +21,7 @@ setup({
   size:      5,
   color:     [0,0,0,1],
   borderSize: 1,
+  snapPoints: true,
   borderColor: [.5,.5,.5,.5]
 })
 
