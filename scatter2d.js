@@ -62,10 +62,10 @@ proto.update = function(options) {
   this.borderColor  = dflt('borderColor', [0, 0, 0, 1]).slice()
   this.snapPoints   = dflt('snapPoints', true)
 
-  if(this.xCoords) pool.free(this.xCoords)
-
   //do not recalc points if there is no positions
   if (options.positions != null) {
+    if(this.xCoords) pool.free(this.xCoords)
+
     this.points             = options.positions
     var pointCount          = this.points.length >>> 1
 

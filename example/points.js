@@ -11,7 +11,7 @@ var POINT_COUNT = 1e6
 
 var positions = new Float32Array(2 * POINT_COUNT)
 for(var i=0; i<2*POINT_COUNT; ++i) {
-  positions[i] = Math.random() * 10 - 5
+  positions[i] = random() * 10
 }
 
 
