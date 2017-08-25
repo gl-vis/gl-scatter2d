@@ -20,6 +20,7 @@ function setup (options) {
 
   var canvas = document.createElement('canvas')
   document.body.appendChild(canvas)
+  document.body.style.overflow = 'hidden'
   window.addEventListener('resize', fit(canvas, null, +window.devicePixelRatio), false)
 
   var gl = canvas.getContext('webgl', {
