@@ -15,7 +15,7 @@
     "binary-search-bounds": "^2.0.3",
     "gl-buffer": "^2.1.2",
     "gl-shader": "^4.0.4",
-    "glslify": "^2.1.2",
+    "glslify": "^6.3.1",
     "snap-points-2d": "^3.0.0",
     "typedarray-pool": "^1.1.0",
     "array-bounds": "^1.0.0",
@@ -23,11 +23,10 @@
   },
   "devDependencies": {
     "canvas-fit": "^1.5.0",
-    "enable-mobile": "^1.0.7",
+    "enable-mobile": "git://github.com/archmoj/enable-mobile.git#d3110398792effd9b3d1f2f321afbbb3f22c9c3d",
     "fps-indicator": "^1.1.0",
     "gauss-random": "^1.0.1",
-    "gl-plot2d": "^1.2.0",
-    "gl-select-box": "^1.0.1",
+    "gl-select-box": "git://github.com/gl-vis/gl-select-box.git#6966feb6c78f3709c0d93a364ae1d97de28df876",
     "gl-spikes2d": "^1.0.1",
     "mouse-change": "^1.4.0",
     "mouse-wheel": "^1.2.0"
